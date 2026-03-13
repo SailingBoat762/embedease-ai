@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
-import { Bold, Italic, List, Code, ArrowUp, Square } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 import { htmlToMarkdown } from "@/components/rich-editor/helpers/markdown-converter";
 
 interface EmbedRichInputProps {
@@ -44,27 +44,6 @@ export function EmbedRichInput({
     [isEmpty, isLoading, onSubmit]
   );
 
-  const execCommand = useCallback((cmd: string, value?: string) => {
-    document.execCommand(cmd, false, value);
-    editorRef.current?.focus();
-    updateContent();
-  }, [updateContent]);
-
-  const handleBold = () => execCommand("bold");
-  const handleItalic = () => execCommand("italic");
-  const handleCode = () => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const code = document.createElement("code");
-      code.appendChild(range.extractContents());
-      range.insertNode(code);
-      updateContent();
-    }
-  };
-  const handleList = () => execCommand("insertUnorderedList");
-
-  // 清空内容
   useEffect(() => {
     if (!value && editorRef.current && editorRef.current.innerHTML !== "") {
       editorRef.current.innerHTML = "";
@@ -74,63 +53,23 @@ export function EmbedRichInput({
   const canSubmit = !isEmpty || isLoading;
 
   return (
-    <div className="embed-rich-input">
+    <div className="embed-input-row">
       <div
         ref={editorRef}
-        className="embed-rich-editor"
+        className="embed-input-editor"
         contentEditable={!disabled}
         onInput={updateContent}
         onKeyDown={handleKeyDown}
         data-placeholder={placeholder}
         suppressContentEditableWarning
       />
-      <div className="embed-rich-toolbar">
-        <div className="embed-rich-actions">
-          <button
-            type="button"
-            className="embed-rich-btn"
-            onClick={handleBold}
-            disabled={disabled}
-            title="粗体"
-          >
-            <Bold size={14} />
-          </button>
-          <button
-            type="button"
-            className="embed-rich-btn"
-            onClick={handleItalic}
-            disabled={disabled}
-            title="斜体"
-          >
-            <Italic size={14} />
-          </button>
-          <button
-            type="button"
-            className="embed-rich-btn"
-            onClick={handleList}
-            disabled={disabled}
-            title="列表"
-          >
-            <List size={14} />
-          </button>
-          <button
-            type="button"
-            className="embed-rich-btn"
-            onClick={handleCode}
-            disabled={disabled}
-            title="代码"
-          >
-            <Code size={14} />
-          </button>
-        </div>
-        <button
-          className={`embed-send-btn ${isLoading ? "embed-send-btn-stop" : ""}`}
-          onClick={onSubmit}
-          disabled={!canSubmit || disabled}
-        >
-          {isLoading ? <Square size={14} /> : <ArrowUp size={14} />}
-        </button>
-      </div>
+      <button
+        className={`embed-send-btn ${isLoading ? "embed-send-btn-stop" : ""}`}
+        onClick={onSubmit}
+        disabled={!canSubmit || disabled}
+      >
+        {isLoading ? <Square size={14} /> : <ArrowUp size={14} />}
+      </button>
     </div>
   );
 }

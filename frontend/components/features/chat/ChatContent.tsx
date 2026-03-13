@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { AlertCircle, Bot, Network, X } from "lucide-react";
+import { AlertCircle, Bot, Network, X, Settings2 } from "lucide-react";
 import {
   ChatContainerContent,
   ChatContainerRoot,
@@ -11,7 +11,14 @@ import { ScrollButton } from "@/components/prompt-kit/scroll-button";
 import { ChatRichInput } from "@/components/features/chat/ChatRichInput";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useConversationStore, useChatStore, type TimelineItem } from "@/stores";
 import {
@@ -212,14 +219,14 @@ export function ChatContent({ isHumanMode = false, wsConnected = false, wsSendMe
     )}>
       {/* 顶部栏 */}
       <header className={cn(
-        "z-10 flex h-16 w-full shrink-0 items-center gap-2 px-4",
-        themeId === "default" && "border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900",
+        "z-10 flex h-14 w-full shrink-0 items-center gap-2 px-4",
+        themeId === "default" && "bg-white/80 backdrop-blur-sm dark:bg-zinc-900/80",
         themeId === "ethereal" && "chat-ethereal-header",
         themeId === "industrial" && "chat-industrial-header"
       )}>
         <SidebarTrigger className="-ml-1" />
         <div className={cn(
-          "flex-1 text-sm font-medium",
+          "flex-1 text-sm font-medium truncate",
           themeId === "default" && "text-zinc-900 dark:text-zinc-100",
           themeId === "ethereal" && "text-[var(--chat-text-primary)]",
           themeId === "industrial" && "text-[var(--chat-text-primary)] uppercase tracking-wider text-xs"
@@ -227,39 +234,60 @@ export function ChatContent({ isHumanMode = false, wsConnected = false, wsSendMe
           {title || "新对话"}
         </div>
 
-        {/* Supervisor 当前 Agent 显示 */}
         {currentAgentName && (
-          <Badge variant="secondary" className="text-xs gap-1">
+          <span className="text-xs text-zinc-400 dark:text-zinc-500 flex items-center gap-1">
             <Network className="h-3 w-3" />
             {currentAgentName}
-          </Badge>
+          </span>
         )}
 
-        {/* Agent 切换器 */}
-        {agents.length > 0 && (
-          <Select
-            value={activeAgent?.id || ""}
-            onValueChange={(id) => activateAgent(id)}
-          >
-            <SelectTrigger className="w-[160px] h-8 text-xs">
-              <Bot className="h-3 w-3 mr-1" />
-              <SelectValue placeholder="选择 Agent" />
-            </SelectTrigger>
-            <SelectContent>
-              {agents.filter(a => a.status === "enabled").map((agent) => (
-                <SelectItem key={agent.id} value={agent.id} className="text-xs">
-                  <div className="flex items-center gap-1">
-                    {agent.is_supervisor && <Network className="h-3 w-3 text-orange-500" />}
-                    {agent.name}
+        {/* Settings dropdown: Agent selector + Theme */}
+        {(agents.length > 0 || theme) && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
+                <Settings2 className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {agents.length > 0 && (
+                <>
+                  <DropdownMenuLabel className="text-xs text-zinc-500">切换 Agent</DropdownMenuLabel>
+                  <div className="px-2 pb-2">
+                    <Select
+                      value={activeAgent?.id || ""}
+                      onValueChange={(id) => activateAgent(id)}
+                    >
+                      <SelectTrigger className="h-8 text-xs w-full">
+                        <Bot className="h-3 w-3 mr-1" />
+                        <SelectValue placeholder="选择 Agent" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {agents.filter(a => a.status === "enabled").map((agent) => (
+                          <SelectItem key={agent.id} value={agent.id} className="text-xs">
+                            <div className="flex items-center gap-1">
+                              {agent.is_supervisor && <Network className="h-3 w-3 text-orange-500" />}
+                              {agent.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                </>
+              )}
+              {theme && (
+                <>
+                  {agents.length > 0 && <DropdownMenuSeparator />}
+                  <DropdownMenuLabel className="text-xs text-zinc-500">主题</DropdownMenuLabel>
+                  <div className="px-2 pb-2 flex items-center gap-2">
+                    <ThemeSwitcherIcon />
+                  </div>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
-
-        {/* 主题切换器 */}
-        {theme && <ThemeSwitcherIcon />}
       </header>
 
       {/* 消息区域 */}
@@ -272,14 +300,14 @@ export function ChatContent({ isHumanMode = false, wsConnected = false, wsSendMe
           <ChatContainerContent className="space-y-3 px-5 py-12">
             {timeline.length === 0 && (
               <ThemedEmptyState className="flex flex-col items-center justify-center py-20">
-                <ThemedEmptyIcon className="mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                  <span className="text-2xl">🛒</span>
+                <ThemedEmptyIcon className="mb-4 flex h-14 w-14 items-center justify-center rounded-full">
+                  <Bot className="h-6 w-6" />
                 </ThemedEmptyIcon>
-                <ThemedEmptyTitle className="mb-2 text-xl font-semibold">
-                  商品推荐助手
+                <ThemedEmptyTitle className="mb-2 text-lg font-semibold">
+                  有什么可以帮您？
                 </ThemedEmptyTitle>
-                <ThemedEmptyDescription className="text-center text-sm">
-                  告诉我你想要什么，我来帮你找到最合适的商品
+                <ThemedEmptyDescription className="text-center text-sm text-zinc-400">
+                  告诉我你想要什么，我来帮你找到最合适的答案
                 </ThemedEmptyDescription>
                 {suggestedQuestions.welcome.length > 0 && (
                   <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -343,7 +371,6 @@ export function ChatContent({ isHumanMode = false, wsConnected = false, wsSendMe
             onSubmit={handleButtonClick}
             placeholder={themeId === "industrial" ? "INPUT QUERY..." : "描述你想要的商品..."}
             isLoading={isStreaming}
-            showToolbar={false}
             className={cn(
               "relative z-10 w-full shadow-sm",
               themeId === "ethereal" && "chat-ethereal-input-wrapper",

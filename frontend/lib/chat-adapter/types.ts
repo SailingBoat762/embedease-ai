@@ -3,7 +3,7 @@
  */
 
 import type { ChatEvent, ChatRequest, ImageAttachment } from "@/types/chat";
-import type { TimelineState } from "@/lib/timeline/types";
+import type { TimelineState } from "@embedease/chat-sdk";
 import type { Product } from "@/types/product";
 
 // ==================== 历史消息类型 ====================

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Loader2, Check, XCircle, Wrench, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ToolCallItem, ItemStatus, ToolCallSubItem } from "@/hooks/use-timeline-reducer";
+import type { Product } from "@/types/product";
 import { TimelineProductsItem } from "./TimelineProductsItem";
 import { TimelineTodosItem } from "./TimelineTodosItem";
 import { TimelineContextSummarizedItem } from "./TimelineContextSummarizedItem";
@@ -17,20 +18,20 @@ const STATUS_CONFIG: Record<
   { icon: React.ReactNode; className: string }
 > = {
   running: {
-    icon: <Loader2 className="h-4 w-4 animate-spin" />,
-    className: "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700",
+    icon: <Loader2 className="h-3.5 w-3.5 animate-spin" />,
+    className: "text-zinc-500 dark:text-zinc-400",
   },
   success: {
-    icon: <Check className="h-4 w-4" />,
-    className: "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800",
+    icon: <Check className="h-3.5 w-3.5" />,
+    className: "text-emerald-600 dark:text-emerald-400",
   },
   error: {
-    icon: <XCircle className="h-4 w-4" />,
-    className: "bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800",
+    icon: <XCircle className="h-3.5 w-3.5" />,
+    className: "text-red-500 dark:text-red-400",
   },
   empty: {
-    icon: <Check className="h-4 w-4 opacity-60" />,
-    className: "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800",
+    icon: <Check className="h-3.5 w-3.5 opacity-60" />,
+    className: "text-zinc-400 dark:text-zinc-500",
   },
 };
 
@@ -59,7 +60,7 @@ function renderSubItem(subItem: ToolCallSubItem) {
             type: "assistant.products",
             id: subItem.id,
             turnId: "",
-            products: subItem.products,
+            products: subItem.products as unknown as Product[],
             ts: subItem.ts,
           }}
         />
@@ -105,45 +106,41 @@ export function TimelineToolCallItem({ item }: TimelineToolCallItemProps) {
   const hasChildren = item.children && item.children.length > 0;
 
   return (
-    <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-      {/* Header */}
+    <div className="rounded-xl overflow-hidden bg-zinc-50/80 dark:bg-zinc-800/30">
       <div
         className={cn(
-          "flex items-center gap-2 px-3 py-2 text-sm transition-all",
-          hasChildren && "cursor-pointer",
+          "flex items-center gap-2 px-3 py-2 text-sm transition-colors rounded-xl",
+          hasChildren && "cursor-pointer hover:bg-zinc-100/80 dark:hover:bg-zinc-800/50",
           config.className
         )}
         onClick={() => hasChildren && setIsExpanded(!isExpanded)}
       >
-        <Wrench className="h-4 w-4 opacity-60" />
+        <Wrench className="h-3.5 w-3.5 opacity-50" />
         {config.icon}
-        <span className="font-medium">{getStatusText(item)}</span>
+        <span className="text-xs font-medium">{getStatusText(item)}</span>
         {showStats && item.count !== undefined && (
-          <span className="text-xs opacity-70">· {item.count}项</span>
+          <span className="text-xs opacity-50">{item.count}项</span>
         )}
         {showStats && item.elapsedMs !== undefined && (
-          <span className="text-xs opacity-70">· {item.elapsedMs}ms</span>
+          <span className="text-xs opacity-40">{item.elapsedMs}ms</span>
         )}
         {item.error && (
-          <span className="text-xs opacity-70 ml-auto">{item.error}</span>
+          <span className="text-xs opacity-50 ml-auto">{item.error}</span>
         )}
         {hasChildren && (
           <span className="ml-auto">
             {isExpanded ? (
-              <ChevronDown className="h-4 w-4 opacity-50" />
+              <ChevronDown className="h-3.5 w-3.5 opacity-40" />
             ) : (
-              <ChevronRight className="h-4 w-4 opacity-50" />
+              <ChevronRight className="h-3.5 w-3.5 opacity-40" />
             )}
           </span>
         )}
       </div>
 
-      {/* Children - 工具执行期间的数据事件 */}
       {isExpanded && hasChildren && (
-        <div className="border-t border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900">
-          <div className="p-3 space-y-3">
-            {item.children.map((child) => renderSubItem(child))}
-          </div>
+        <div className="px-3 pb-3 space-y-3">
+          {item.children.map((child) => renderSubItem(child))}
         </div>
       )}
     </div>

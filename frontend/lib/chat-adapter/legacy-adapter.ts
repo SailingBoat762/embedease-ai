@@ -23,7 +23,7 @@ import {
   createAgentWebSocketManager as legacyCreateAgentWebSocketManager,
 } from "@/lib/websocket";
 import type { ChatEvent, ChatRequest, ImageAttachment } from "@/types/chat";
-import type { TimelineState } from "@/lib/timeline/types";
+import type { TimelineState } from "@embedease/chat-sdk";
 import type {
   IChatStreamClient,
   ITimelineManager,
@@ -75,7 +75,7 @@ export class LegacyTimelineManager implements ITimelineManager {
   }
 
   dispatch(event: ChatEvent): void {
-    this.state = legacyTimelineReducer(this.state, event);
+    this.state = legacyTimelineReducer(this.state, event as unknown as Record<string, unknown>);
   }
 
   addUserMessage(
@@ -103,7 +103,7 @@ export class LegacyTimelineManager implements ITimelineManager {
   }
 
   initFromHistory(messages: HistoryMessage[]): void {
-    this.state = legacyHistoryToTimeline(messages);
+    this.state = legacyHistoryToTimeline(messages as Parameters<typeof legacyHistoryToTimeline>[0]);
   }
 }
 

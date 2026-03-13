@@ -19,7 +19,7 @@ import {
 import { timelineReducer } from "@/lib/timeline/reducer";
 
 import type { ChatEvent, ChatRequest, ImageAttachment } from "@/types/chat";
-import type { TimelineState } from "@/lib/timeline/types";
+import type { TimelineState } from "@embedease/chat-sdk";
 import type {
   IChatStreamClient,
   ITimelineManager,
@@ -58,7 +58,7 @@ export class NewChatStreamClient implements IChatStreamClient {
  * 新 SDK Timeline 管理器适配器
  */
 export class NewTimelineManager implements ITimelineManager {
-  private state: TimelineState = createInitialState() as TimelineState;
+  private state: TimelineState = createInitialState();
 
   getState(): TimelineState {
     return this.state;
@@ -69,7 +69,7 @@ export class NewTimelineManager implements ITimelineManager {
   }
 
   dispatch(event: ChatEvent): void {
-    this.state = timelineReducer(this.state, event);
+    this.state = timelineReducer(this.state, event as unknown as Record<string, unknown>);
   }
 
   addUserMessage(
@@ -77,27 +77,27 @@ export class NewTimelineManager implements ITimelineManager {
     content: string,
     images?: ImageAttachment[]
   ): void {
-    this.state = sdkAddUserMessage(this.state as Parameters<typeof sdkAddUserMessage>[0], id, content, images as Parameters<typeof sdkAddUserMessage>[3]) as unknown as TimelineState;
+    this.state = sdkAddUserMessage(this.state, id, content, images);
   }
 
   startAssistantTurn(turnId: string): void {
-    this.state = sdkStartAssistantTurn(this.state as Parameters<typeof sdkStartAssistantTurn>[0], turnId) as unknown as TimelineState;
+    this.state = sdkStartAssistantTurn(this.state, turnId);
   }
 
   clearTurn(turnId: string): void {
-    this.state = sdkClearTurn(this.state as Parameters<typeof sdkClearTurn>[0], turnId) as unknown as TimelineState;
+    this.state = sdkClearTurn(this.state, turnId);
   }
 
   endTurn(): void {
-    this.state = sdkEndTurn(this.state as Parameters<typeof sdkEndTurn>[0]) as unknown as TimelineState;
+    this.state = sdkEndTurn(this.state);
   }
 
   reset(): void {
-    this.state = createInitialState() as unknown as TimelineState;
+    this.state = createInitialState();
   }
 
   initFromHistory(messages: HistoryMessage[]): void {
-    this.state = sdkHistoryToTimeline(messages as Parameters<typeof sdkHistoryToTimeline>[0]) as unknown as TimelineState;
+    this.state = sdkHistoryToTimeline(messages as Parameters<typeof sdkHistoryToTimeline>[0]);
   }
 }
 

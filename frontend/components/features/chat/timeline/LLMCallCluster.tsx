@@ -7,6 +7,7 @@ import type {
   LLMCallClusterItem,
   LLMCallSubItem,
 } from "@/hooks/use-timeline-reducer";
+import type { Product } from "@/types/product";
 import { TimelineReasoningItem } from "./TimelineReasoningItem";
 import { TimelineContentItem } from "./TimelineContentItem";
 import { TimelineProductsItem } from "./TimelineProductsItem";
@@ -102,69 +103,63 @@ export function LLMCallCluster({ item, isStreaming = false }: LLMCallClusterProp
 
   return (
     <div className="flex flex-col gap-3">
-      {/* 1. 推理过程 - 在回复上方展示（先思考后回复） */}
+      {/* 1. 推理过程 */}
       {hasReasoning && (
         <div className={cn(
-          "rounded-lg overflow-hidden",
-          themeId === "default" && "border border-zinc-200 dark:border-zinc-700",
-          themeId === "ethereal" && "border border-[var(--chat-border-color)]",
-          themeId === "industrial" && "border border-[var(--chat-border-color)]"
+          "rounded-xl overflow-hidden",
+          themeId === "default" && "bg-zinc-50/80 dark:bg-zinc-800/40",
+          themeId === "ethereal" && "bg-[var(--chat-surface-secondary)]",
+          themeId === "industrial" && "bg-[var(--chat-surface-secondary)]"
         )}>
           <button
             className={cn(
-              "w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors",
-              themeId === "default" && "bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800/50 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400",
-              themeId === "ethereal" && "bg-[var(--chat-surface-secondary)] hover:opacity-80 text-[var(--chat-text-secondary)]",
-              themeId === "industrial" && "bg-[var(--chat-surface-secondary)] hover:opacity-80 text-[var(--chat-text-secondary)]"
+              "w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors rounded-xl",
+              themeId === "default" && "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300",
+              themeId === "ethereal" && "text-[var(--chat-text-secondary)] hover:opacity-80",
+              themeId === "industrial" && "text-[var(--chat-text-secondary)] hover:opacity-80"
             )}
             onClick={() => setIsReasoningExpanded(!isReasoningExpanded)}
           >
-            <Brain className="h-4 w-4 opacity-60" />
+            <Brain className="h-3.5 w-3.5" />
             {isRunning && <Loader2 className="h-3 w-3 animate-spin" />}
-            <span>AI 思考过程</span>
+            <span className="text-xs font-medium">思考过程</span>
             {item.elapsedMs !== undefined && item.status !== "running" && (
-              <span className="text-xs opacity-50">· {item.elapsedMs}ms</span>
+              <span className="text-xs opacity-40">{item.elapsedMs}ms</span>
             )}
             <div className="ml-auto">
               {isReasoningExpanded ? (
-                <ChevronDown className="h-4 w-4 opacity-50" />
+                <ChevronDown className="h-3.5 w-3.5 opacity-40" />
               ) : (
-                <ChevronRight className="h-4 w-4 opacity-50" />
+                <ChevronRight className="h-3.5 w-3.5 opacity-40" />
               )}
             </div>
           </button>
           
           {isReasoningExpanded && (
-            <div className={cn(
-              "p-3 space-y-3",
-              themeId === "default" && "bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-700",
-              themeId === "ethereal" && "bg-[var(--chat-surface-primary)] border-t border-[var(--chat-border-color)]",
-              themeId === "industrial" && "bg-[var(--chat-surface-primary)] border-t border-[var(--chat-border-color)]"
-            )}>
+            <div className="px-3 pb-3 space-y-3">
               {reasoningItems.map((child) => renderNonProductSubItem(child, isStreaming))}
             </div>
           )}
         </div>
       )}
 
-      {/* 2. AI 回复内容 - 直接展示 */}
+      {/* 2. AI 回复内容 */}
       {contentItems.map((child) => renderNonProductSubItem(child, isStreaming))}
 
-      {/* 3. 商品推荐 - 直接展示，突出显示 */}
+      {/* 3. 商品推荐 */}
       {productItems.length > 0 && (
         <div className={cn(
           "rounded-xl p-4",
-          themeId === "default" && "bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/10 dark:to-amber-900/10 border border-orange-100 dark:border-orange-800/30",
-          themeId === "ethereal" && "bg-[var(--chat-surface-secondary)] border border-[var(--chat-border-color)]",
-          themeId === "industrial" && "bg-[var(--chat-surface-secondary)] border border-[var(--chat-border-color)]"
+          themeId === "default" && "bg-zinc-50/80 dark:bg-zinc-800/30",
+          themeId === "ethereal" && "bg-[var(--chat-surface-secondary)]",
+          themeId === "industrial" && "bg-[var(--chat-surface-secondary)]"
         )}>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">🛒</span>
             <span className={cn(
-              "text-sm font-medium",
-              themeId === "default" && "text-orange-700 dark:text-orange-300",
+              "text-xs font-medium",
+              themeId === "default" && "text-zinc-500 dark:text-zinc-400",
               themeId === "ethereal" && "text-[var(--chat-text-primary)]",
-              themeId === "industrial" && "text-[var(--chat-text-primary)] uppercase tracking-wider text-xs"
+              themeId === "industrial" && "text-[var(--chat-text-primary)] uppercase tracking-wider"
             )}>
               推荐商品
             </span>
@@ -176,7 +171,7 @@ export function LLMCallCluster({ item, isStreaming = false }: LLMCallClusterProp
                 type: "assistant.products",
                 id: child.id,
                 turnId: "",
-                products: child.type === "products" ? child.products : [],
+                products: child.type === "products" ? (child.products as unknown as Product[]) : [],
                 ts: child.ts,
               }}
             />
@@ -184,7 +179,7 @@ export function LLMCallCluster({ item, isStreaming = false }: LLMCallClusterProp
         </div>
       )}
 
-      {/* 4. 其他项（todos、context_summarized 等） */}
+      {/* 4. 其他项 */}
       {otherItems.map((child) => renderNonProductSubItem(child, isStreaming))}
     </div>
   );

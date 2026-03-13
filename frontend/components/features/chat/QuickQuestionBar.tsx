@@ -36,13 +36,11 @@ export function QuickQuestionBar({
           disabled={disabled}
           className={cn(
             "shrink-0 px-3 py-1.5 text-xs rounded-full",
-            "border border-zinc-200 dark:border-zinc-700",
-            "bg-white dark:bg-zinc-800",
-            "text-zinc-700 dark:text-zinc-300",
-            "hover:border-orange-300 hover:bg-orange-50 dark:hover:border-orange-600 dark:hover:bg-orange-900/20",
+            "bg-zinc-100 dark:bg-zinc-800",
+            "text-zinc-600 dark:text-zinc-300",
+            "hover:bg-zinc-200 dark:hover:bg-zinc-700",
             "transition-colors whitespace-nowrap",
-            "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-zinc-200 disabled:hover:bg-white",
-            "dark:disabled:hover:border-zinc-700 dark:disabled:hover:bg-zinc-800"
+            "disabled:opacity-50 disabled:cursor-not-allowed"
           )}
         >
           {q.question}

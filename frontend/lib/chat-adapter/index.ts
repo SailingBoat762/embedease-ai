@@ -4,6 +4,7 @@
  * 根据 Feature Flag 自动选择新/旧 SDK 实现
  */
 
+import { registerToolLabels } from "@embedease/chat-sdk";
 import { isNewSDKEnabled, getSDKVersion } from "./config";
 import {
   LegacyChatStreamClient,
@@ -22,6 +23,15 @@ import type {
   ITimelineManager,
   IWebSocketManager,
 } from "./types";
+
+registerToolLabels({
+  search_products: "商品搜索",
+  get_product_details: "商品详情",
+  filter_by_price: "价格筛选",
+  compare_products: "商品对比",
+  guide_user: "用户引导",
+  load_skill: "加载技能",
+});
 
 // 重新导出类型
 export * from "./types";

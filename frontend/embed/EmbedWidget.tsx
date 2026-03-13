@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { MessageCircle, X, Trash2, Minus, AlertCircle, ArrowUp, Square, Headphones, Bot } from "lucide-react";
+import { MessageCircle, X, Trash2, Minus, AlertCircle, Headphones, Bot, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "./embed.css";
@@ -322,8 +322,11 @@ export function EmbedWidget({ config }: EmbedWidgetProps) {
           {/* 头部 */}
           <div className="embed-header">
             <div className="embed-header-title">
-              <span className="embed-header-icon">🛒</span>
+              <span className="embed-header-icon">
+                <Sparkles size={14} />
+              </span>
               <span>{title}</span>
+              {wsConnected && <span className="embed-online-dot" />}
             </div>
             <div className="embed-header-actions">
               <button
@@ -332,38 +335,25 @@ export function EmbedWidget({ config }: EmbedWidgetProps) {
                 title="清空对话"
                 disabled={isLoading}
               >
-                <Trash2 size={16} />
+                <Trash2 size={15} />
               </button>
               <button
                 className="embed-icon-btn"
                 onClick={() => setIsOpen(false)}
                 title="收起"
               >
-                <Minus size={16} />
+                <Minus size={15} />
               </button>
             </div>
           </div>
 
-          {/* 状态栏 */}
-          {conversationId && (
+          {/* 状态栏 - 仅在人工模式下显示 */}
+          {conversationId && isHumanMode && (
             <div className="embed-status-bar">
-              {isHumanMode ? (
-                <div className="embed-status embed-status-human">
-                  <Headphones size={12} />
-                  <span>人工客服{conversationState.operator ? ` · ${conversationState.operator}` : ""}</span>
-                </div>
-              ) : (
-                <div className="embed-status embed-status-ai">
-                  <Bot size={12} />
-                  <span>AI 助手</span>
-                </div>
-              )}
-              {wsConnected && (
-                <div className="embed-status embed-status-connected">
-                  <span className="embed-status-dot" />
-                  <span>已连接</span>
-                </div>
-              )}
+              <div className="embed-status embed-status-human">
+                <Headphones size={12} />
+                <span>人工客服{conversationState.operator ? ` · ${conversationState.operator}` : ""}</span>
+              </div>
             </div>
           )}
 
@@ -376,7 +366,9 @@ export function EmbedWidget({ config }: EmbedWidgetProps) {
               </div>
             ) : messages.length === 0 ? (
               <div className="embed-empty">
-                <div className="embed-empty-icon">🛒</div>
+                <div className="embed-empty-icon">
+                  <Bot size={22} />
+                </div>
                 <div className="embed-empty-title">有什么可以帮您？</div>
                 <div className="embed-empty-desc">告诉我你想要什么商品</div>
                 <div className="embed-suggestions">
@@ -402,7 +394,7 @@ export function EmbedWidget({ config }: EmbedWidgetProps) {
                     {msg.role === "human_agent" && (
                       <div className="embed-message-badge">
                         <Headphones size={10} />
-                        <span>客服</span>
+                        <span>客服{msg.operator ? ` · ${msg.operator}` : ""}</span>
                       </div>
                     )}
                     {msg.role === "system" && (

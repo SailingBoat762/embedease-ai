@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { AlertCircle, ArrowUp, Square, X } from "lucide-react";
+import { AlertCircle, X, Bot } from "lucide-react";
 import {
   ChatContainerContent,
   ChatContainerRoot,
@@ -9,7 +9,6 @@ import {
 import { Message } from "@/components/prompt-kit/message";
 import { ScrollButton } from "@/components/prompt-kit/scroll-button";
 import { ChatRichInput } from "@/components/features/chat/ChatRichInput";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { TimelineItem } from "@/hooks/use-timeline-reducer";
 import {
@@ -148,14 +147,14 @@ export function EmbedChatContent({
         <ChatContainerRoot className="h-full">
           <ChatContainerContent className="space-y-2 py-4">
             {timeline.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-8 px-4">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-orange-500/10">
-                  <span className="text-xl">🛒</span>
+              <div className="flex flex-col items-center justify-center py-10 px-4">
+                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
+                  <Bot className="h-5 w-5 text-zinc-500" />
                 </div>
                 <h3 className="mb-1 text-sm font-medium text-zinc-900 dark:text-zinc-100">
                   有什么可以帮您？
                 </h3>
-                <p className="text-center text-xs text-zinc-500 mb-4">
+                <p className="text-center text-xs text-zinc-400 mb-4">
                   告诉我你想要什么商品
                 </p>
                 <div className="flex flex-wrap justify-center gap-1.5">
@@ -163,11 +162,9 @@ export function EmbedChatContent({
                     ? suggestedQuestions.welcome
                     : DEFAULT_SUGGESTIONS
                   ).map((item) => (
-                    <Button
+                    <button
                       key={item.id}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-7 px-2"
+                      className="text-xs px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50"
                       onClick={() => {
                         onSuggestionClick?.(item.question, item.id);
                         onSendMessage(item.question);
@@ -175,7 +172,7 @@ export function EmbedChatContent({
                       disabled={isStreaming}
                     >
                       {item.question}
-                    </Button>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -191,10 +188,10 @@ export function EmbedChatContent({
       </div>
 
       {/* 输入区域 */}
-      <div className="shrink-0 border-t border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="shrink-0 bg-white px-3 pb-3 pt-2 dark:bg-zinc-900">
         {/* 快捷问题栏 */}
         {suggestedQuestions && suggestedQuestions.input.length > 0 && (
-          <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2 scrollbar-thin">
+          <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-thin">
             {suggestedQuestions.input.map((item) => (
               <button
                 key={item.id}
@@ -203,7 +200,7 @@ export function EmbedChatContent({
                   onSendMessage(item.question);
                 }}
                 disabled={isStreaming}
-                className="shrink-0 px-2 py-1 text-xs rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-orange-300 hover:bg-orange-50 dark:hover:border-orange-600 dark:hover:bg-orange-900/20 transition-colors whitespace-nowrap disabled:opacity-50"
+                className="shrink-0 px-2.5 py-1 text-xs rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors whitespace-nowrap disabled:opacity-50"
               >
                 {item.question}
               </button>
