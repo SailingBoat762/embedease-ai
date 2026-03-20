@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_context
-from app.core.dependencies import get_db_session
+from app.core.dependencies import get_current_user, get_db_session
 from app.core.logging import get_logger
 from app.models.agent import SuggestedQuestion
 from app.models.conversation import HandoffState
@@ -36,6 +36,7 @@ logger = get_logger("chat")
 async def chat(
     request_data: ChatRequest,
     request: Request,
+    current_user=Depends(get_current_user),
 ):
     """流式聊天接口
 

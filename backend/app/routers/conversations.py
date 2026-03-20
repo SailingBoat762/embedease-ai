@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import get_db_session
+from app.core.dependencies import get_current_user, get_db_session
 from app.schemas.conversation import (
     ConversationCreate,
     ConversationResponse,
@@ -14,7 +14,11 @@ from app.schemas.conversation import (
 )
 from app.services.conversation import ConversationService
 
-router = APIRouter(prefix="/api/v1/conversations", tags=["conversations"])
+router = APIRouter(
+    prefix="/api/v1/conversations",
+    tags=["conversations"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.get("", response_model=list[ConversationResponse])

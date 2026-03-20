@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.crawler_database import get_crawler_db_dep
 from app.core.database import get_db
+from app.core.dependencies import get_current_admin
 from app.core.errors import raise_service_unavailable
 from app.core.logging import get_logger
 from app.services.crawler import crawler_config_service
@@ -33,7 +34,11 @@ from app.schemas.admin import (
 from app.models.agent import Agent
 
 logger = get_logger("router.admin")
-router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
+router = APIRouter(
+    prefix="/api/v1/admin",
+    tags=["admin"],
+    dependencies=[Depends(get_current_admin)],
+)
 
 
 # ========== Settings API ==========

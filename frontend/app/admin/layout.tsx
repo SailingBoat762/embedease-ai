@@ -1,5 +1,6 @@
 import { SetupGuardProvider } from "@/components/providers/setup-guard-provider";
 import { AdminLayoutContent } from "@/components/admin/admin-layout-content";
+import { AdminAuthWrapper } from "@/components/providers/admin-auth-wrapper";
 
 export default function AdminLayout({
   children,
@@ -7,8 +8,10 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SetupGuardProvider>
-      <AdminLayoutContent>{children}</AdminLayoutContent>
-    </SetupGuardProvider>
+    <AdminAuthWrapper>
+      <SetupGuardProvider>
+        <AdminLayoutContent>{children}</AdminLayoutContent>
+      </SetupGuardProvider>
+    </AdminAuthWrapper>
   );
 }

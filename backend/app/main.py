@@ -13,7 +13,7 @@ from app.core.database import init_db
 from app.core.errors import AppError, create_error_response
 from app.core.logging import logger
 from app.core.models_dev import get_model_profile
-from app.routers import admin, chat, conversations, crawler, support, users, ws
+from app.routers import admin, auth, chat, conversations, crawler, support, users, ws
 from app.routers import health as health_router
 from app.routers import ocr as ocr_router
 from app.routers import prompts as prompts_router
@@ -98,6 +98,26 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     _init_model_profiles()
 
     await init_db()
+
+    # 初始化默认管理员账号（若配置了 ADMIN_INIT_EMAIL）
+    if settings.ADMIN_INIT_EMAIL and settings.ADMIN_INIT_PASSWORD:
+        try:
+            from app.core.database import get_db_context
+            from app.services.auth_service import AdminAuthService
+            async with get_db_context() as _db:
+                svc = AdminAuthService(_db)
+                try:
+                    await svc.create_admin(
+                        email=settings.ADMIN_INIT_EMAIL,
+                        password=settings.ADMIN_INIT_PASSWORD,
+                        name=settings.ADMIN_INIT_NAME,
+                        role="super_admin",
+                    )
+                    logger.info("初始管理员账号已创建", email=settings.ADMIN_INIT_EMAIL)
+                except Exception:
+                    pass  # 已存在则跳过
+        except Exception as e:
+            logger.warning("初始管理员创建失败", error=str(e))
 
     # 初始化默认 Agent（从配置文件写入数据库）
     try:
@@ -307,6 +327,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 
 
 # 注册路由
+app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(agents_router)
 app.include_router(knowledge_router)

@@ -17,8 +17,8 @@ logger = get_logger("router.ws")
 router = APIRouter(prefix="/ws", tags=["websocket"])
 
 
-async def _authenticate_user(token: str | None, conversation_id: str) -> tuple[bool, str, str]:
-    """验证用户身份
+async def _authenticate_user(token: str | None, db) -> tuple[bool, str, str]:
+    """验证用户身份（JWT）
     
     Returns:
         (success, user_id, error_message)
@@ -26,16 +26,16 @@ async def _authenticate_user(token: str | None, conversation_id: str) -> tuple[b
     if not token:
         return False, "", "缺少认证 token"
 
-    # TODO: 实现真实的 token 验证（JWT 等）
-    # 这里简化处理，支持 "user_{user_id}" 格式或直接使用 token 作为 user_id
-    if token.startswith("user_"):
-        return True, token[5:], ""
+    try:
+        from app.core.dependencies import get_current_user_ws
+        user = await get_current_user_ws(token, db)
+        return True, user.id, ""
+    except Exception as e:
+        return False, "", str(e)
 
-    return True, token, ""
 
-
-async def _authenticate_agent(token: str | None) -> tuple[bool, str, str]:
-    """验证客服身份
+async def _authenticate_agent(token: str | None, db) -> tuple[bool, str, str]:
+    """验证客服身份（JWT 管理员 token）
     
     Returns:
         (success, agent_id, error_message)
@@ -43,18 +43,19 @@ async def _authenticate_agent(token: str | None) -> tuple[bool, str, str]:
     if not token:
         return False, "", "缺少认证 token"
 
-    # TODO: 实现真实的 token 验证（企业微信 OAuth 等）
-    if token.startswith("agent_"):
-        return True, token[6:], ""
-
-    return True, token, ""
+    try:
+        from app.core.dependencies import get_current_admin_ws
+        admin = await get_current_admin_ws(token, db)
+        return True, admin.id, ""
+    except Exception as e:
+        return False, "", str(e)
 
 
 @router.websocket("/user/{conversation_id}")
 async def ws_user_endpoint(
     websocket: WebSocket,
     conversation_id: str,
-    token: str = Query(..., description="用户认证 token"),
+    token: str = Query(..., description="用户 JWT Access Token"),
 ):
     """用户端 WebSocket 连接
     
@@ -76,8 +77,10 @@ async def ws_user_endpoint(
     - client.user.request_handoff: 请求人工客服
     - system.ping: 心跳
     """
-    # 1. 验证身份
-    success, user_id, error = await _authenticate_user(token, conversation_id)
+    # 1. 验证身份（先建立 db session，再验证 token）
+    from app.core.database import get_db_context
+    async with get_db_context() as auth_db:
+        success, user_id, error = await _authenticate_user(token, auth_db)
     if not success:
         await websocket.close(code=4001, reason=error)
         return
@@ -255,8 +258,10 @@ async def ws_agent_endpoint(
     - client.agent.transfer: 转接客服
     - system.ping: 心跳
     """
-    # 1. 验证身份
-    success, agent_id, error = await _authenticate_agent(token)
+    # 1. 验证身份（JWT 管理员 token）
+    from app.core.database import get_db_context
+    async with get_db_context() as auth_db:
+        success, agent_id, error = await _authenticate_agent(token, auth_db)
     if not success:
         await websocket.close(code=4001, reason=error)
         return

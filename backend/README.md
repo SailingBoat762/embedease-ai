@@ -1,119 +1,103 @@
-# 商品推荐 Agent 后端
+# EmbedeaseAI Agent 后端
 
-基于 LangChain v1.1 + FastAPI + Qdrant 的智能商品推荐系统后端。
+基于 FastAPI + LangChain v1.2 + LangGraph 的智能 AI Agent 后端。
 
 ## 快速开始
 
-### 1. 安装依赖
-
 ```bash
-cd backend
+# 1. 安装依赖
 uv sync
-```
 
-### 2. 配置环境变量
-
-```bash
+# 2. 配置环境变量（仅需填 4 项 LLM 配置）
 cp .env.example .env
-# 编辑 .env，填入你的硅基流动 API Key
-```
 
-### 3. 确保 Qdrant 运行中
-
-```bash
-# Qdrant 应该在 localhost:6333 运行
-docker ps | grep qdrant
-```
-
-### 4. 导入商品数据
-
-```bash
-uv run python scripts/import_products.py
-```
-
-### 5. 启动服务
-
-```bash
+# 3. 启动服务
 uv run uvicorn app.main:app --reload --port 8000
 ```
 
-### 6. 代码检查
+完整部署说明见根目录 [README.md](../README.md)。
+
+## 开发命令
 
 ```bash
+# 启动（开发模式）
+uv run uvicorn app.main:app --reload --port 8000
+
+# 代码检查 + 自动修复
 uv run ruff check --fix
+
+# 运行测试
+uv run pytest
+
+# 导入示例数据
+uv run python scripts/import_products.py
+
+# 创建管理员账号
+uv run python -m scripts.create_admin --email admin@example.com --password yourpassword
+
+# 开启详细 Agent 日志调试
+LOG_VERBOSE_AGENT=true uv run uvicorn app.main:app --reload --port 8000
 ```
 
-## API 接口
+## 日志配置
 
-### 健康检查
-
-```
-GET /health
-```
-
-### 用户
-
-```
-POST /api/v1/users           # 创建匿名用户
-GET  /api/v1/users/{user_id} # 获取用户信息
-```
-
-### 会话
-
-```
-GET    /api/v1/conversations?user_id=xxx  # 获取用户会话列表
-POST   /api/v1/conversations              # 创建新会话
-GET    /api/v1/conversations/{id}         # 获取会话详情
-DELETE /api/v1/conversations/{id}         # 删除会话
-```
-
-### 聊天
-
-```
-POST /api/v1/chat  # 流式聊天（SSE）
-```
-
-## 目录结构
-
-```
-backend/
-├── app/
-│   ├── core/           # 核心配置
-│   ├── models/         # SQLAlchemy 模型
-│   ├── schemas/        # Pydantic 模型
-│   ├── repositories/   # 数据访问层
-│   ├── services/       # 业务逻辑层
-│   │   └── agent/      # Agent 相关
-│   ├── routers/        # API 路由
-│   └── utils/          # 工具函数
-├── scripts/            # 脚本
-├── data/               # 数据文件
-└── tests/              # 测试
-```
-
-## 日志调试
-
-```bash
-# 启动后端，观察控制台输出
-cd backend && uv run python -m app.main
-
-# 默认情况下，工具/LLM 调用日志为 DEBUG 级别，不会刷屏
-# 如需调试，临时开启详细日志：
-LOG_VERBOSE_AGENT=true uv run python -m app.main
-```
-
-**日志配置说明**：
 | 配置项 | 作用 | 默认值 |
 |--------|------|--------|
 | `LOG_VERBOSE_AGENT` | 输出 Agent/LLM 详细日志 | `false` |
 | `LOG_SLOW_THRESHOLD_MS` | 慢调用阈值（超过则输出完整日志） | `3000` |
 | `LOG_AGENT_FILE_ENABLED` | 启用 `agent.log` 分流 | `true` |
 
+日志文件：`logs/app.log`（全量）、`logs/agent.log`（Agent 专用）
+
+## 主要 API
+
+```
+GET  /health                              # 健康检查
+
+POST /api/v1/auth/register                # 用户注册
+POST /api/v1/auth/login                   # 用户登录
+POST /api/v1/auth/refresh                 # 刷新 Token
+POST /api/v1/admin/auth/login             # 管理员登录
+
+POST /api/v1/users                        # 创建匿名用户
+GET  /api/v1/users/{user_id}              # 获取用户信息
+
+GET  /api/v1/conversations                # 获取会话列表
+POST /api/v1/conversations                # 创建会话
+GET  /api/v1/conversations/{id}/messages  # 获取消息列表
+
+POST /api/v1/chat                         # 流式聊天（SSE）
+
+GET  /api/v1/admin/...                    # 管理后台接口（需 Admin Token）
+```
+
+完整接口文档：启动后访问 `http://localhost:8000/docs`
+
+## 目录结构
+
+```
+backend/
+├── app/
+│   ├── core/           # JWT、配置、数据库、依赖注入
+│   ├── models/         # SQLAlchemy 数据模型
+│   ├── schemas/        # Pydantic 请求/响应 Schema
+│   ├── repositories/   # 数据访问层
+│   ├── services/       # 业务逻辑
+│   │   ├── agent/      #   Agent 核心（工具链 + 中间件矩阵）
+│   │   ├── memory/     #   记忆系统
+│   │   ├── skill/      #   技能系统
+│   │   └── websocket/  #   WebSocket 服务
+│   └── routers/        # API 路由
+├── scripts/            # 运维脚本（import_products, create_admin）
+├── data/               # 数据文件（SQLite DB、知识图谱）
+└── tests/              # 测试
+```
+
 ## 技术栈
 
-- **FastAPI**: Web 框架
-- **LangChain v1.1**: AI Agent 框架
-- **LangGraph**: 状态图管理
-- **SQLite**: 数据库
+- **FastAPI** + **uvicorn**: Web 框架
+- **LangChain v1.2** + **LangGraph**: AI Agent 框架
+- **SQLAlchemy** (async): ORM
+- **SQLite** / **PostgreSQL**: 关系数据库
 - **Qdrant**: 向量数据库
-- **硅基流动**: LLM + Embedding API
+- **PyJWT** + **passlib[bcrypt]**: 认证

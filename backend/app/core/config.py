@@ -393,6 +393,22 @@ class Settings(BaseSettings):
     SUPPORT_CONSOLE_URL: str = ""  # 客服控制台 URL（用于通知中的链接）
     SUPPORT_SLA_SECONDS: int = 120  # SLA 等待时间（秒），超过后发送提醒
 
+    # ========== 鉴权配置 ==========
+    JWT_SECRET_KEY: str = "change-me-in-production-use-a-long-random-string"  # JWT 签名密钥
+    JWT_ALGORITHM: str = "HS256"
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15   # Access Token 有效期（分钟）
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7       # Refresh Token 有效期（天）
+
+    SECRET_ENCRYPTION_KEY: str = ""  # OIDC client_secret 加密密钥（32字节base64），留空则不加密
+
+    # 管理员初始化（首次启动时自动创建）
+    ADMIN_INIT_EMAIL: str = ""
+    ADMIN_INIT_PASSWORD: str = ""
+    ADMIN_INIT_NAME: str = "Admin"
+
+    # 前端回调 URL（OIDC 回调后重定向到前端的基础 URL）
+    FRONTEND_URL: str = "http://localhost:3000"
+
     @property
     def crawler_sites(self) -> list[dict[str, Any]]:
         """
