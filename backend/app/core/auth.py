@@ -7,13 +7,10 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any, Literal
 
+import bcrypt
 import jwt
-from passlib.context import CryptContext
 
 from app.core.config import settings
-
-# 密码哈希上下文（bcrypt）
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 # ──────────────────────────────────────────────────────────
@@ -23,12 +20,18 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
     """对明文密码进行 bcrypt 哈希"""
-    return pwd_context.hash(password)
+    # bcrypt 要求 bytes 输入
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode("utf-8"), salt)
+    return hashed.decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """验证密码是否匹配"""
-    return pwd_context.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(
+        plain_password.encode("utf-8"),
+        hashed_password.encode("utf-8"),
+    )
 
 
 # ──────────────────────────────────────────────────────────

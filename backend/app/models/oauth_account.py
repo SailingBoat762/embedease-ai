@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, String, Text, UniqueConstraint, func
+from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -21,7 +21,7 @@ class OAuthAccount(Base):
     __table_args__ = (UniqueConstraint("provider_id", "subject", name="uq_provider_subject"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    provider_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    provider_id: Mapped[str] = mapped_column(String(36), ForeignKey("oidc_providers.id"), nullable=False, index=True)
     subject: Mapped[str] = mapped_column(String(255), nullable=False)  # Provider 返回的 sub
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     user_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)

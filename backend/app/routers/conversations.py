@@ -17,7 +17,6 @@ from app.services.conversation import ConversationService
 router = APIRouter(
     prefix="/api/v1/conversations",
     tags=["conversations"],
-    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -202,6 +201,7 @@ async def get_conversation_messages(
 async def delete_conversation(
     conversation_id: str,
     db: AsyncSession = Depends(get_db_session),
+    _: object = Depends(get_current_user),
 ):
     """删除会话"""
     service = ConversationService(db)
